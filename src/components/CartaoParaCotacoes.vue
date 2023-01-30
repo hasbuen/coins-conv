@@ -66,7 +66,7 @@ import axios from 'axios'
     }),
   mounted () {
     if(this.currency == 'USD'){
-        axios.get(`http://economia.awesomeapi.com.br/json/last/${this.currency}-BRL`).then(response => {
+        axios.get(`https://economia.awesomeapi.com.br/json/last/${this.currency}-BRL`).then(response => {
             this.cotacao = response.data.USDBRL.high;
           }).catch(error => {
             console.error(error)
@@ -74,7 +74,7 @@ import axios from 'axios'
     }
 
     if(this.currency == 'BTC'){
-        axios.get(`http://economia.awesomeapi.com.br/json/last/${this.currency}-BRL`).then(response => {
+        axios.get(`https://economia.awesomeapi.com.br/json/last/${this.currency}-BRL`).then(response => {
             this.cotacao = response.data.BTCBRL.high;
           }).catch(error => {
             console.error(error)
@@ -82,7 +82,7 @@ import axios from 'axios'
     }
 
       if(this.currency == 'EUR'){
-        axios.get(`http://economia.awesomeapi.com.br/json/last/${this.currency}-BRL`).then(response => {
+        axios.get(`https://economia.awesomeapi.com.br/json/last/${this.currency}-BRL`).then(response => {
             this.cotacao = response.data.EURBRL.high;
           }).catch(error => {
             console.error(error)
