@@ -1,36 +1,39 @@
 <template>
   <v-app>
-    <!-- Barra de topo com seletor de tema -->
-    <v-app-bar flat density="compact" class="px-4">
-      <v-toolbar-title class="text-h6">Conversor de Moedas</v-toolbar-title>
+    <!-- Barra superior -->
+    <v-app-bar app flat>
+      <v-toolbar-title>Conversor de Moedas</v-toolbar-title>
+
       <v-spacer></v-spacer>
+
+      <!-- Seletor de tema -->
       <v-select
-        v-model="tema"
-        :items="['Sistema', 'Claro', 'Escuro']"
-        label="Tema"
+        v-model="selectedTheme"
+        :items="themes"
+        variant="outlined"
         density="compact"
-        variant="solo-filled"
         hide-details
-        style="max-width: 140px"
+        style="max-width: 120px"
+        @update:modelValue="changeTheme"
       />
     </v-app-bar>
 
-    <v-main>
-      <v-container class="py-6" fluid>
+    <!-- Conteúdo principal -->
+    <v-main class="pa-6 d-flex justify-center align-center">
+      <v-container>
         <v-row
-          align="stretch"
+          align="center"
           justify="center"
-          class="d-flex flex-wrap"
-          no-gutters
+          dense
+          class="text-center"
         >
-          <!-- 1 card por moeda -->
           <v-col
             v-for="(item, index) in lista"
             :key="index"
             cols="12"
             sm="6"
             md="4"
-            class="d-flex justify-center pa-2"
+            class="d-flex justify-center"
           >
             <CartaoParaCotacoes :currency="item.currency" />
           </v-col>
@@ -41,68 +44,60 @@
 </template>
 
 <script>
-import { useTheme } from "vuetify";
-import CartaoParaCotacoes from "@/components/CartaoParaCotacoes.vue";
+import CartaoParaCotacoes from '@/components/CartaoParaCotacoes.vue'
 
 export default {
-  name: "CurrencyView",
-  components: {
-    CartaoParaCotacoes,
-  },
-  setup() {
-    const theme = useTheme();
-    return { theme };
-  },
+  name: 'CurrencyView',
+  components: { CartaoParaCotacoes },
   data() {
     return {
-      tema: "Sistema",
+      selectedTheme: 'Sistema',
+      themes: ['Claro', 'Escuro', 'Sistema'],
       lista: [
-        { currency: "USD" },
-        { currency: "BTC" },
-        { currency: "EUR" },
+        { currency: 'USD' },
+        { currency: 'BTC' },
+        { currency: 'EUR' },
       ],
-    };
-  },
-  watch: {
-    tema(novo) {
-      this.aplicarTema(novo);
-    },
+    }
   },
   mounted() {
-    this.carregarTema();
+    this.applySystemTheme()
   },
   methods: {
-    aplicarTema(opcao) {
-      const prefersDark =
-        window.matchMedia &&
-        window.matchMedia("(prefers-color-scheme: dark)").matches;
+    changeTheme(theme) {
+      const isDark = this.$vuetify.theme.global.name.value === 'dark'
 
-      if (opcao === "Escuro") this.theme.global.name.value = "dark";
-      else if (opcao === "Claro") this.theme.global.name.value = "light";
-      else this.theme.global.name.value = prefersDark ? "dark" : "light";
-
-      localStorage.setItem("temaEscolhido", opcao);
-    },
-    carregarTema() {
-      const salvo = localStorage.getItem("temaEscolhido");
-      if (salvo) {
-        this.tema = salvo;
-        this.aplicarTema(salvo);
+      if (theme === 'Claro') {
+        this.$vuetify.theme.global.name.value = 'light'
+      } else if (theme === 'Escuro') {
+        this.$vuetify.theme.global.name.value = 'dark'
       } else {
-        this.aplicarTema("Sistema");
+        this.applySystemTheme()
       }
     },
+    applySystemTheme() {
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+      this.$vuetify.theme.global.name.value = prefersDark ? 'dark' : 'light'
+    },
   },
-};
+}
 </script>
 
 <style scoped>
+.v-application {
+  background-color: transparent !important;
+}
+
 .v-main {
   min-height: 100vh;
-  display: flex;
-  flex-direction: column;
 }
-.v-container {
-  max-width: 1200px;
+
+.v-app-bar {
+  backdrop-filter: blur(12px);
+  background-color: rgba(0, 0, 0, 0.3) !important;
+}
+
+.v-select {
+  color: white !important;
 }
 </style>
