@@ -19,13 +19,13 @@
     </v-app-bar>
 
     <!-- Conteúdo principal -->
-    <v-main class="pa-6 d-flex justify-center align-center">
-      <v-container>
+    <v-main>
+      <v-container class="py-12">
         <v-row
           align="center"
           justify="center"
-          dense
           class="text-center"
+          no-gutters
         >
           <v-col
             v-for="(item, index) in lista"
@@ -33,7 +33,7 @@
             cols="12"
             sm="6"
             md="4"
-            class="d-flex justify-center"
+            class="d-flex justify-center mb-6"
           >
             <CartaoParaCotacoes :currency="item.currency" />
           </v-col>
@@ -65,8 +65,6 @@ export default {
   },
   methods: {
     changeTheme(theme) {
-      const isDark = this.$vuetify.theme.global.name.value === 'dark'
-
       if (theme === 'Claro') {
         this.$vuetify.theme.global.name.value = 'light'
       } else if (theme === 'Escuro') {
@@ -88,10 +86,6 @@ export default {
   background-color: transparent !important;
 }
 
-.v-main {
-  min-height: 100vh;
-}
-
 .v-app-bar {
   backdrop-filter: blur(12px);
   background-color: rgba(0, 0, 0, 0.3) !important;
@@ -99,5 +93,9 @@ export default {
 
 .v-select {
   color: white !important;
+}
+
+.v-main {
+  min-height: 100vh;
 }
 </style>
