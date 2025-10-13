@@ -1,55 +1,44 @@
 <template>
-  <v-container class="pa-4" fluid>
-    <v-row align="stretch" justify="center" class="d-flex flex-wrap" no-gutters>
-      <v-col cols="12" sm="6" md="4" class="d-flex justify-center pa-2">
-        <v-card
-          class="text-center rounded-xl elevation-3 pa-4 w-100"
-          :class="isDark ? 'bg-primary text-white' : 'bg-grey-lighten-5 text-grey-darken-4'"
-        >
-          <v-card-item class="text-h6 font-weight-medium pb-2">
-            {{ currency }}
-          </v-card-item>
+  <v-card
+    class="pa-4 d-flex flex-column align-center justify-center"
+    :color="cardColor"
+    elevation="6"
+    rounded="xl"
+  >
+    <!-- Título da moeda -->
+    <div class="text-h6 font-weight-bold mb-2 text-center">
+      {{ currencyName }}
+    </div>
 
-          <v-card-text class="d-flex align-center justify-center flex-column flex-sm-row gap-2 py-4">
-            <v-icon :icon="icone(currency)" size="42" color="secondary" />
-            <div class="text-h4 font-weight-bold">
-              {{ cotacao ?? '...' }}
-            </div>
-          </v-card-text>
+    <!-- Valor principal -->
+    <div class="d-flex align-center mb-3">
+      <v-icon :icon="currencyIcon" size="32" class="me-2" color="teal-accent-3" />
+      <span class="text-h5 font-weight-bold">{{ valorFormatado }}</span>
+    </div>
 
-          <v-divider class="mx-4 opacity-50"></v-divider>
+    <!-- Texto auxiliar -->
+    <div class="text-caption text-center text-medium-emphasis mb-1">
+      Valor em Real (BRL)
+    </div>
 
-          <v-card-text>
-            <v-text-field
-              v-model="valor"
-              density="comfortable"
-              variant="solo-filled"
-              :label="`Valor em ${nomeMoeda(currency)}`"
-              :prefix="prefixSimbolo(currency)"
-              append-inner-icon="mdi-calculator-variant-outline"
-              single-line
-              hide-details
-              color="secondary"
-              class="mb-2"
-              @click:append-inner="converter"
-            />
-            <v-slide-y-transition>
-              <div v-if="convertido" class="text-body-1 mt-2">
-                {{ currency }} {{ prefixSimbolo(currency) }}{{ valor || 0 }} × BRL R${{ cotacao }} =
-                <strong>R${{ convertido }}</strong>
-              </div>
-            </v-slide-y-transition>
-          </v-card-text>
-        </v-card>
-      </v-col>
-    </v-row>
-  </v-container>
+    <!-- Botão para simular conversão -->
+    <v-btn
+      icon
+      variant="text"
+      color="white"
+      @click="converterExemplo"
+    >
+      <v-icon>mdi-calculator-variant</v-icon>
+    </v-btn>
+
+    <!-- Resultado da conversão -->
+    <div v-if="resultado" class="text-body-2 mt-3 text-center font-mono">
+      {{ resultado }}
+    </div>
+  </v-card>
 </template>
 
 <script>
-import axios from "axios";
-import { useTheme } from "vuetify";
-
 export default {
   name: "CartaoParaCotacoes",
   props: {
@@ -58,51 +47,73 @@ export default {
       required: true,
     },
   },
-  setup() {
-    const theme = useTheme();
-    return { theme };
-  },
   data() {
     return {
-      cotacao: null,
-      valor: "",
-      convertido: "",
+      valor: 0,
+      resultado: "",
     };
   },
   computed: {
-    isDark() {
-      return this.theme.global.current.value.dark;
+    cardColor() {
+      return this.$vuetify.theme.global.current.value.dark
+        ? "deep-purple-accent-2"
+        : "deep-purple-lighten-3";
     },
-  },
-  mounted() {
-    this.buscarCotacao();
+    currencyName() {
+      const nomes = {
+        USD: "Dólar Americano",
+        EUR: "Euro",
+        BTC: "Bitcoin",
+      };
+      return nomes[this.currency] || this.currency;
+    },
+    currencyIcon() {
+      const icons = {
+        USD: "mdi-currency-usd",
+        EUR: "mdi-currency-eur",
+        BTC: "mdi-bitcoin",
+      };
+      return icons[this.currency] || "mdi-cash";
+    },
+    valorFormatado() {
+      const valoresExemplo = {
+        USD: 5.53,
+        EUR: 6.41,
+        BTC: 650699.0,
+      };
+      const valor = valoresExemplo[this.currency] || 0;
+      return valor.toLocaleString("pt-BR", {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      });
+    },
   },
   methods: {
-    async buscarCotacao() {
-      try {
-        const resp = await axios.get(`https://economia.awesomeapi.com.br/json/last/${this.currency}-BRL`);
-        const key = `${this.currency}BRL`;
-        this.cotacao = parseFloat(resp.data[key].high).toFixed(2);
-      } catch (e) {
-        this.cotacao = "0.00";
-      }
-    },
-    converter() {
-      const v = parseFloat(this.valor);
-      const c = parseFloat(this.cotacao);
-      if (!isNaN(v) && !isNaN(c)) {
-        this.convertido = (v * c).toFixed(2);
-      }
-    },
-    icone(m) {
-      return { USD: "mdi-currency-usd", EUR: "mdi-currency-eur", BTC: "mdi-bitcoin" }[m] || "mdi-cash";
-    },
-    nomeMoeda(m) {
-      return { USD: "Dólar", EUR: "Euro", BTC: "Bitcoin" }[m] || m;
-    },
-    prefixSimbolo(m) {
-      return { USD: "$", EUR: "€", BTC: "₿" }[m] || "";
+    converterExemplo() {
+      const valorBRL = 100;
+      const taxa = {
+        USD: 5.53,
+        EUR: 6.41,
+        BTC: 650699.0,
+      }[this.currency];
+      const total = valorBRL * taxa;
+      this.resultado = `R$ ${valorBRL} × ${this.currency} ${taxa} = R$${total.toLocaleString(
+        "pt-BR",
+        { maximumFractionDigits: 2 }
+      )}`;
     },
   },
 };
 </script>
+
+<style scoped>
+.v-card {
+  width: 100%;
+  max-width: 300px;
+  transition: all 0.3s ease;
+}
+.v-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.2);
+}
+</style>
