@@ -1,26 +1,40 @@
 <template>
-  <v-container class="pa-2" fluid>
+  <v-container class="pa-4" fluid>
+    <!-- Seletor de tema -->
+    <div class="d-flex justify-end mb-3">
+      <v-select
+        v-model="tema"
+        :items="['Sistema', 'Claro', 'Escuro']"
+        label="Tema"
+        density="compact"
+        variant="solo-filled"
+        hide-details
+        class="theme-select"
+        style="max-width: 160px"
+      />
+    </div>
+
+    <!-- Card principal -->
     <v-card
-      class="mx-auto bg-primary text-center rounded-xl elevation-3 pa-4"
+      class="mx-auto text-center rounded-xl elevation-3 pa-4 transition-all"
       max-width="420"
+      :class="isDark ? 'bg-primary text-white' : 'bg-grey-lighten-5 text-grey-darken-4'"
     >
-      <v-card-item class="text-h6 text-white font-weight-medium pb-2">
+      <v-card-item class="text-h6 font-weight-medium pb-2">
         {{ currency }}
       </v-card-item>
 
-      <!-- Cotação -->
       <v-card-text
         class="d-flex align-center justify-center flex-column flex-sm-row gap-2 py-4"
       >
         <v-icon :icon="icon" size="42" color="secondary" />
-        <div class="text-h4 font-weight-bold text-white">
+        <div class="text-h4 font-weight-bold">
           {{ cotacao }}
         </div>
       </v-card-text>
 
       <v-divider class="mx-4 opacity-50"></v-divider>
 
-      <!-- Campo de entrada -->
       <v-card-text>
         <v-text-field
           v-model="valor"
@@ -37,16 +51,14 @@
           @click:append-inner="converter"
         />
 
-        <!-- Resultado -->
         <v-slide-y-transition>
-          <div v-if="convertido" class="text-body-1 mt-2 text-white">
+          <div v-if="convertido" class="text-body-1 mt-2">
             {{ currency }} ${{ valor || 0 }} × BRL R${{ cotacao }} =
             <strong>R${{ convertido }}</strong>
           </div>
         </v-slide-y-transition>
       </v-card-text>
 
-      <!-- Barra de progresso -->
       <v-progress-linear
         v-if="loading"
         indeterminate
@@ -59,6 +71,7 @@
 
 <script>
 import axios from "axios";
+import { useTheme } from "vuetify";
 
 export default {
   props: {
@@ -67,8 +80,12 @@ export default {
       required: true,
     },
   },
+  setup() {
+    const theme = useTheme();
+    return { theme };
+  },
   data: () => ({
-    loaded: false,
+    tema: "Sistema",
     loading: false,
     cotacao: "",
     valor: "",
@@ -91,14 +108,21 @@ export default {
       };
       return nomes[this.currency] || this.currency;
     },
-  },
-  mounted() {
-    this.buscarCotacao();
+    isDark() {
+      return this.theme.global.current.value.dark;
+    },
   },
   watch: {
+    tema(novo) {
+      this.atualizarTema(novo);
+    },
     valor() {
       if (this.valor && this.cotacao) this.converter();
     },
+  },
+  mounted() {
+    this.buscarCotacao();
+    this.carregarTema();
   },
   methods: {
     async buscarCotacao() {
@@ -115,13 +139,31 @@ export default {
     converter() {
       if (!this.valor || !this.cotacao) return;
       this.loading = true;
-
       setTimeout(() => {
         const result = parseFloat(this.valor) * parseFloat(this.cotacao);
         this.convertido = result.toFixed(2);
         this.loading = false;
-        this.loaded = true;
       }, 400);
+    },
+    atualizarTema(opcao) {
+      const prefersDark =
+        window.matchMedia &&
+        window.matchMedia("(prefers-color-scheme: dark)").matches;
+
+      if (opcao === "Escuro") this.theme.global.name.value = "dark";
+      else if (opcao === "Claro") this.theme.global.name.value = "light";
+      else this.theme.global.name.value = prefersDark ? "dark" : "light";
+
+      localStorage.setItem("temaEscolhido", opcao);
+    },
+    carregarTema() {
+      const salvo = localStorage.getItem("temaEscolhido");
+      if (salvo) {
+        this.tema = salvo;
+        this.atualizarTema(salvo);
+      } else {
+        this.atualizarTema("Sistema");
+      }
     },
   },
 };
@@ -134,8 +176,9 @@ export default {
 .v-card:hover {
   transform: scale(1.02);
 }
-
-/* 🔹 Responsividade mobile: layout horizontal */
+.theme-select {
+  transition: all 0.3s ease;
+}
 @media (max-width: 600px) {
   .v-card {
     max-width: 95% !important;
